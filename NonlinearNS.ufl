@@ -1,0 +1,37 @@
+# pylint: disable-all
+# Define elements
+
+cell = tetrahedron
+
+vElem = VectorElement("P", cell, 1)
+fElem = FiniteElement("P", cell, 1)
+thElem = vElem * fElem
+rElem = FiniteElement("Real", cell, 0)
+
+# Define test functions
+w = Coefficient(thElem)
+u, p = split(w)
+(v, q) = TestFunctions(thElem)
+w0 = Coefficient(thElem)
+u0, p0 = split(w0)
+
+# Define coefficients
+f = Coefficient(vElem)
+k = Coefficient(rElem)
+nu = Coefficient(rElem)
+theta = Coefficient(rElem)
+um = theta*u + (1.0-theta)*u0
+
+dx = dx(metadata={'quadrature_degree': 10})
+
+F = (1/k)*inner(u - u0, v)*dx + inner(grad(um)*um, v)*dx + \
+    nu*inner(grad(um), grad(v))*dx + inner(grad(p), v) * \
+    dx - inner(f, v)*dx + div(um)*q*dx
+
+h = CellDiameter(cell)
+# u_norm = sqrt(dot(u, u))
+# tau = ((2.0/k)**2 + (2.0*u_norm/h)**2 + (4.0*nu/h**2)**2)**(-0.5)
+tau = h #according to reference [6]
+F += tau*(inner(grad(p) + grad(um)*um - f, grad(q) + grad(v)*um) + inner(div(um), div(v)))*dx
+
+J = derivative(F, w)

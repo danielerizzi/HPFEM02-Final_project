@@ -1,0 +1,18 @@
+# pylint: disable-all
+# Define elements
+
+cell = tetrahedron
+
+vElem = VectorElement("P", cell, 1)
+fElem = FiniteElement("P", cell, 1)
+thElem = vElem * fElem
+rElem = FiniteElement("Real", cell, 0)
+
+w = Coefficient(thElem)
+u, p = split(w)
+
+n = FacetNormal(cell)
+
+inlet_pressure = p * ds(2) 
+
+forms = [inlet_pressure]
